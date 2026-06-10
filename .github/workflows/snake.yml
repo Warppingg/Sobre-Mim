@@ -1,0 +1,35 @@
+name: Generate Snake Animation
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: Platane/snk@v3
+        with:
+          github_user_name: Warppingg
+          snake_color: "667eea"
+          outputs: |
+            dist/github-contribution-grid-snake.svg
+            dist/github-contribution-grid-snake-dark.svg?palette=github-dark
+
+      - name: Deploy snake to output folder
+        run: |
+          mkdir -p output
+          cp dist/github-contribution-grid-snake.svg output/
+          cp dist/github-contribution-grid-snake-dark.svg* output/github-contribution-grid-snake-dark.svg 2>/dev/null || \
+            find dist -name '*dark*' -exec cp {} output/github-contribution-grid-snake-dark.svg \;
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output/
+          git diff --staged --quiet && exit 0
+          git commit -m "chore: update contribution snake animation"
+          git push
